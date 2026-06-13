@@ -1,0 +1,48 @@
+{{- if .Values.resources.webhook.enabled }}
+{{- /*
+  HyperDX Webhook operator. oasgen-provider generates:
+    - {{ .Values.resources.webhook.kind }}.{{ .Values.resourceGroup }}              (the managed resource)
+    - {{ .Values.resources.webhook.kind }}Configuration.{{ .Values.resourceGroup }} (holds the Bearer API key)
+  HyperDX webhooks support create / list / get / delete (no update).
+*/}}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: hyperdx-webhook
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: krateo-installer
+    app.kubernetes.io/part-of: krateo-observability-stack
+spec:
+  oasPath: {{ .Values.oasPath }}
+  resourceGroup: {{ .Values.resourceGroup }}
+  resource:
+    kind: {{ .Values.resources.webhook.kind }}
+    # Human-friendly identifier used by findby to locate an existing webhook.
+    identifiers:
+      - name
+    # Technical id returned by HyperDX, kept in status and used for get/delete.
+    additionalStatusFields:
+      - _id
+    excludedSpecFields:
+      - _id
+    verbsDescription:
+      - action: findby
+        method: GET
+        path: /webhooks
+      - action: create
+        method: POST
+        path: /webhooks
+      - action: get
+        method: GET
+        path: /webhooks/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.metadata._id
+      - action: delete
+        method: DELETE
+        path: /webhooks/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.metadata._id
+{{- end }}

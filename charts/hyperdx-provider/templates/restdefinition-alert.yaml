@@ -1,0 +1,47 @@
+{{- if .Values.resources.alert.enabled }}
+{{- /*
+  HyperDX Alert operator. oasgen-provider generates:
+    - {{ .Values.resources.alert.kind }}.{{ .Values.resourceGroup }}              (the managed alert rule)
+    - {{ .Values.resources.alert.kind }}Configuration.{{ .Values.resourceGroup }} (holds the Bearer API key)
+  An Alert references a source/saved-search id and a Webhook id (channel.webhookId).
+  HyperDX alerts support create / list / get / delete.
+*/}}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: hyperdx-alert
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: krateo-installer
+    app.kubernetes.io/part-of: krateo-observability-stack
+spec:
+  oasPath: {{ .Values.oasPath }}
+  resourceGroup: {{ .Values.resourceGroup }}
+  resource:
+    kind: {{ .Values.resources.alert.kind }}
+    identifiers:
+      - name
+    additionalStatusFields:
+      - _id
+    excludedSpecFields:
+      - _id
+    verbsDescription:
+      - action: findby
+        method: GET
+        path: /alerts
+      - action: create
+        method: POST
+        path: /alerts
+      - action: get
+        method: GET
+        path: /alerts/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.metadata._id
+      - action: delete
+        method: DELETE
+        path: /alerts/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.metadata._id
+{{- end }}

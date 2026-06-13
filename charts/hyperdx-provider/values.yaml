@@ -1,0 +1,26 @@
+# hyperdx-provider — generate a HyperDX operator via oasgen-provider.
+#
+# Applying this chart's RestDefinitions makes oasgen-provider fetch the OpenAPI
+# spec (oasPath) and generate, per resource, a managed CRD + controller:
+#   - Webhook.<resourceGroup>           + WebhookConfiguration.<resourceGroup>
+#   - Alert.<resourceGroup>             + AlertConfiguration.<resourceGroup>
+# The *Configuration resources carry the HyperDX Bearer API key (a Secret ref).
+
+global: {}
+
+namespace: krateo-system
+
+# OpenAPI spec describing the HyperDX API. oasgen-provider fetches this URL.
+oasPath: https://raw.githubusercontent.com/braghettos/observability-stack/main/openapi/hyperdx.yaml
+
+# API group for the generated CRDs.
+resourceGroup: hyperdx.krateo.io
+
+# Which resources to generate (each becomes a RestDefinition -> CRD + controller).
+resources:
+  webhook:
+    enabled: true
+    kind: Webhook
+  alert:
+    enabled: true
+    kind: Alert

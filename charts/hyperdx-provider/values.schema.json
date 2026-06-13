@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "hyperdx-provider values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "global": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "oasPath": {
+      "type": "string",
+      "description": "URL of the HyperDX OpenAPI spec consumed by oasgen-provider."
+    },
+    "resourceGroup": {
+      "type": "string",
+      "description": "API group for the generated CRDs."
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "webhook": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "kind": {
+              "type": "string"
+            }
+          }
+        },
+        "alert": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "kind": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

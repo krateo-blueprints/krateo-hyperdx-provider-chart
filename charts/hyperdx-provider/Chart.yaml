@@ -1,0 +1,15 @@
+apiVersion: v2
+name: hyperdx-provider
+description: >-
+  Generates a HyperDX operator using the Krateo operator generator
+  (oasgen-provider). Ships two RestDefinitions — Webhook and Alert — that
+  oasgen-provider turns into managed CRDs + controllers (Webhook/Alert plus their
+  *Configuration resources) driving the HyperDX REST API. This replaces the
+  imperative obs-stack pod-restart-alert/*.sh scripts with declarative resources.
+type: application
+version: 0.1.1
+appVersion: "2.27.0"
+home: https://krateo.io
+icon: https://github.com/krateoplatformops/krateo/blob/main/docs/media/logo.svg
+sources:
+  - https://github.com/braghettos/krateo-hyperdx-provider-chart

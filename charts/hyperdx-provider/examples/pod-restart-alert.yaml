@@ -1,0 +1,81 @@
+# Example: declaratively recreate the obs-stack pod-restart alert using the
+# generated HyperDX operator — no bootstrap-alert.sh, no kubectl-to-API calls.
+#
+# Prereq: a HyperDX personal API key (HyperDX UI -> Settings -> API Keys).
+# Everything below is reconciled by the hyperdx-{webhook,alert}-controller.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hyperdx-api-key
+  namespace: krateo-system
+type: Opaque
+stringData:
+  token: "REPLACE_WITH_HYPERDX_API_KEY"
+---
+# Auth config shared by the Webhook resource.
+apiVersion: hyperdx.krateo.io/v1alpha1
+kind: WebhookConfiguration
+metadata:
+  name: hyperdx-webhook-config
+  namespace: krateo-system
+spec:
+  authentication:
+    bearer:
+      tokenRef:
+        name: hyperdx-api-key
+        namespace: krateo-system
+        key: token
+---
+# The Slack webhook target, managed in HyperDX. Its assigned id lands in
+# status (status.metadata._id) and is referenced by the Alert's channel.webhookId.
+apiVersion: hyperdx.krateo.io/v1alpha1
+kind: Webhook
+metadata:
+  name: krateo-troubleshooting
+  namespace: krateo-system
+spec:
+  configurationRef:
+    name: hyperdx-webhook-config
+    namespace: krateo-system
+  name: krateo-troubleshooting
+  service: slack
+  url: "https://hooks.slack.com/services/REPLACE/WITH/SLACK_WEBHOOK"
+---
+apiVersion: hyperdx.krateo.io/v1alpha1
+kind: AlertConfiguration
+metadata:
+  name: hyperdx-alert-config
+  namespace: krateo-system
+spec:
+  authentication:
+    bearer:
+      tokenRef:
+        name: hyperdx-api-key
+        namespace: krateo-system
+        key: token
+---
+# The pod-restart alert rule (threshold > 2 warning events in 5m, grouped per pod),
+# notifying the Slack webhook above. Equivalent to bootstrap-alert.sh, but declarative.
+apiVersion: hyperdx.krateo.io/v1alpha1
+kind: Alert
+metadata:
+  name: pod-restart-alert
+  namespace: krateo-system
+spec:
+  configurationRef:
+    name: hyperdx-alert-config
+    namespace: krateo-system
+  name: "Pod Restart Alert"
+  source: search
+  savedSearchId: "REPLACE_WITH_SOURCE_OR_SAVED_SEARCH_ID"
+  threshold: 2
+  threshold_type: above
+  interval: "5m"
+  groupBy:
+    - k8s.namespace.name
+    - k8s.pod.name
+  message: "Pod restart detected. <@KAGENT_BOT> please investigate and fix."
+  channel:
+    type: slack_webhook
+    webhookId: "REPLACE_WITH_WEBHOOK_ID_FROM_Webhook_STATUS"
