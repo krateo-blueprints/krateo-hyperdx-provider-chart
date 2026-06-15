@@ -7,9 +7,12 @@ description: >-
   *Configuration resources) driving the HyperDX REST API. This replaces the
   imperative obs-stack pod-restart-alert/*.sh scripts with declarative resources.
 type: application
-version: 0.1.1
+# 0.1.2: oasPath repointed from the unpinned observability-stack/main to a PINNED
+# tag of the new krateo-hyperdx-provider source repo (post repo-split).
+version: 0.1.2
 appVersion: "2.27.0"
 home: https://krateo.io
 icon: https://github.com/krateoplatformops/krateo/blob/main/docs/media/logo.svg
 sources:
   - https://github.com/braghettos/krateo-hyperdx-provider-chart
+  - https://github.com/braghettos/krateo-hyperdx-provider
