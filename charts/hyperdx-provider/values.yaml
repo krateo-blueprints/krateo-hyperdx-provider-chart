@@ -11,7 +11,7 @@ global: {}
 namespace: krateo-system
 
 # OpenAPI spec describing the HyperDX API. oasgen-provider fetches this URL.
-oasPath: https://raw.githubusercontent.com/braghettos/observability-stack/main/openapi/hyperdx.yaml
+oasPath: https://raw.githubusercontent.com/braghettos/krateo-hyperdx-provider/1.0.0/openapi/hyperdx.yaml
 
 # API group for the generated CRDs.
 resourceGroup: hyperdx.krateo.io
