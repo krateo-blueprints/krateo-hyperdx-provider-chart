@@ -12,7 +12,17 @@ type: application
 version: 0.1.2
 appVersion: "2.27.0"
 home: https://krateo.io
-icon: https://github.com/krateoplatformops/krateo/blob/main/docs/media/logo.svg
+icon: https://raw.githubusercontent.com/krateoplatformops/krateo/main/docs/media/logo.svg
+keywords:
+  - hyperdx
+  - observability
+  - krateo
+  - oasgen-provider
 sources:
   - https://github.com/braghettos/krateo-hyperdx-provider-chart
   - https://github.com/braghettos/krateo-hyperdx-provider
+annotations:
+  krateo.io/category: observability
+  krateo.io/maturity: beta
+  krateo.io/display-name: HyperDX Provider
+  krateoSupportedVersion: ">= 2.5.1"
