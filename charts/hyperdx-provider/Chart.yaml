@@ -19,8 +19,8 @@ keywords:
   - krateo
   - oasgen-provider
 sources:
-  - https://github.com/braghettos/krateo-hyperdx-provider-chart
-  - https://github.com/braghettos/krateo-hyperdx-provider
+  - https://github.com/krateo-blueprints/krateo-hyperdx-provider-chart
+  - https://github.com/krateo-blueprints/krateo-hyperdx-provider
 annotations:
   krateo.io/category: observability
   krateo.io/maturity: beta
