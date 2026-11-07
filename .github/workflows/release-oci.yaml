@@ -21,6 +21,12 @@
 # Collision guard: refuses to push unless OCI_REPO carries a chart-namespace path segment,
 # so a chart named e.g. `frontend` can never collide with a same-named container image at
 # the registry root. Universal, harmless for every repo.
+#
+# The same bytes are then published to the Marketplace index by the organisation's one publisher
+# (krateo-blueprints/charts PUBLISHING.md). hyperdx-provider has values.schema.json but no
+# CompositionDefinition of its own, so it is not a blueprint and goes to the `operators` channel.
+# The standard also requires the chart version to come from the tag (rule 4), so a chart here
+# that pins a literal version is refused below rather than republished under an old number.
 name: release-oci
 
 on:
@@ -48,6 +54,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      # The Marketplace installs what the helm index at krateo-blueprints/charts lists, not what
+      # GHCR holds, and the publish-index job below needs this secret to get there. Refuse here,
+      # before anything is pushed, so a missing token fails the release instead of leaving GHCR
+      # and the index at different versions (PUBLISHING.md rules 1 and 7).
+      - name: The Marketplace index token must be present
+        env:
+          CHARTS_PUBLISH_TOKEN: ${{ secrets.CHARTS_PUBLISH_TOKEN }}
+        run: |
+          if [ -z "${CHARTS_PUBLISH_TOKEN}" ]; then
+            echo "::error::secret CHARTS_PUBLISH_TOKEN is not set, so this release could not reach the"
+            echo "::error::Marketplace index and the Marketplace would keep installing an old version."
+            exit 1
+          fi
 
       # Collision guard: require a chart-namespace path segment under host/org (e.g. .../krateo).
       # A bare registry root (oci://ghcr.io/<org>) would push a chart named <X> to
@@ -131,7 +151,41 @@ jobs:
             echo "::endgroup::"
           done
 
+          # Versions come from the tag (PUBLISHING.md rule 4). A Chart.yaml with a literal version
+          # packages that literal whatever the tag says: hyperdx-provider pinned 0.1.2, so tag
+          # 0.1.3 rebuilt 0.1.2. Refuse before anything is pushed.
+          for tgz in dist/*.tgz; do
+            case "$(basename "$tgz")" in
+              *"-${CHART_VERSION}.tgz") : ;;
+              *)
+                echo "::error::$(basename "$tgz") is not version ${CHART_VERSION}; its Chart.yaml must carry version: CHART_VERSION"
+                exit 1 ;;
+            esac
+          done
+
           for tgz in dist/*.tgz; do
             echo "Pushing ${tgz} -> ${OCI_REPO}"
             helm push "${tgz}" "${OCI_REPO}"
           done
+
+      # The same bytes that went to GHCR, for the index.
+      - name: Hand the tarballs to the index job
+        uses: actions/upload-artifact@v4
+        with:
+          name: charts-dist
+          path: dist/*.tgz
+          if-no-files-found: error
+
+  # The Marketplace reads https://krateo-blueprints.github.io/charts/operators/index.yaml for charts
+  # that are not blueprints. How every chart in the organisation gets there is decided once, in
+  # krateo-blueprints/charts PUBLISHING.md, and enforced by its publisher, which also reads the
+  # served index and installs each chart anonymously before it succeeds.
+  publish-index:
+    needs: package-and-push
+    uses: krateo-blueprints/charts/.github/workflows/publish-chart.yaml@1
+    with:
+      source_repo: ${{ github.repository }}
+      git_tag: ${{ github.ref_name }}
+      channel: operators
+    secrets:
+      PUBLISH_TOKEN: ${{ secrets.CHARTS_PUBLISH_TOKEN }}
