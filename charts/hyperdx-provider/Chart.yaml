@@ -9,7 +9,7 @@ description: >-
 type: application
 # 0.1.2: oasPath repointed from the unpinned observability-stack/main to a PINNED
 # tag of the new krateo-hyperdx-provider source repo (post repo-split).
-version: 0.1.2
+version: CHART_VERSION
 appVersion: "2.27.0"
 home: https://krateo.io
 icon: https://raw.githubusercontent.com/krateoplatformops/krateo/main/docs/media/logo.svg
