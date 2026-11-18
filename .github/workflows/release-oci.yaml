@@ -91,8 +91,19 @@ jobs:
       - name: Registry login
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+      # krateo-blueprints/charts PUBLISHING.md rule 14: charts are pushed through the organisation's chart-push
+      # action, whose push.sh retries GHCR's tag read-after-write race (and only that) onto the same digest. Locate
+      # mode: it outputs push.sh's path, and the next step runs it once per chart.
+      - name: Locate the shared chart push
+        id: chart-push
+        uses: krateo-platformops/.github/.github/actions/chart-push@653ac1e67d761584993a774c76963514968b3650 # main 2026-11-18
+
       - name: Discover, version, package & push every first-class chart
         env:
+          CHART_PUSH: ${{ steps.chart-push.outputs.path }}
+          # push.sh reads the manifest back with these, after the registry login above.
+          REGISTRY_USERNAME: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
           CHART_VERSION: ${{ steps.ver.outputs.chart_version }}
           APP_VERSION: ${{ steps.ver.outputs.app_version }}
         run: |
@@ -133,5 +144,5 @@ jobs:
 
           for tgz in dist/*.tgz; do
             echo "Pushing ${tgz} -> ${OCI_REPO}"
-            helm push "${tgz}" "${OCI_REPO}"
+            bash "${CHART_PUSH}" "${tgz}" "${OCI_REPO}"
           done
